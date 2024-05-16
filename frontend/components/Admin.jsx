@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import './Admin.css';
+import './Admin.css'; // Ensure the CSS file is correctly imported
 
 const Admin = () => {
     const [openChats, setOpenChats] = useState([]);
