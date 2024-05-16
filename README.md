@@ -20,8 +20,6 @@ Group: SE-2216
 
 - **Backend**: Go (Gorilla WebSocket package for WebSocket support)
 - **Frontend**: React.js
-- **Database**: MongoDB for storing user data and chat history
-- **Deployment**: Docker for containerization and easy deployment
 
 ## Getting Started
 
