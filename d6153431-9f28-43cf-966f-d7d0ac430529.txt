@@ -1,3 +1,0 @@
-{"action":"send_message","chat_id":"d6153431-9f28-43cf-966f-d7d0ac430529","message":"hello"}
-{"action":"send_message","chat_id":"d6153431-9f28-43cf-966f-d7d0ac430529","message":"Какдела?"}
-{"action":"send_message","chat_id":"d6153431-9f28-43cf-966f-d7d0ac430529","message":"Чем живешь?"}
