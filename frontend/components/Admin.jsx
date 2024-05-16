@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import './Admin.css';
 
 const Admin = () => {
     const [openChats, setOpenChats] = useState([]);
@@ -46,9 +47,9 @@ const Admin = () => {
     };
 
     return (
-        <div>
+        <div className="admin-container">
             <h1>Admin Panel</h1>
-            <ul>
+            <ul className="chat-list">
                 {openChats.map((chatID) => (
                     <li key={chatID}>
                         {chatID}

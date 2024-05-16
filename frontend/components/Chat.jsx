@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import './Chat.css';
 
 const Chat = ({ chatID, role }) => {
     const [messages, setMessages] = useState([]);
@@ -46,26 +47,30 @@ const Chat = ({ chatID, role }) => {
     };
 
     return (
-        <div>
-            <div>
+    <div className="parent-container">
+       <div className="chat-container">
+            <div className="messages-container">
                 <ul>
                     {messages.map((msg, index) => (
-                        <li key={index}>{msg}</li>
+                        <li className="message" key={index}>{msg}</li>
                     ))}
                 </ul>
             </div>
-            <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                        sendMessage();
-                    }
-                }}
-            />
-            <button onClick={sendMessage}>Send</button>
-        </div>
+            <div className="input-container">
+                <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                            sendMessage();
+                        }
+                    }}
+                />
+                <button onClick={sendMessage}>Send</button>
+            </div>
+            </div>
+    </div>
     );
 };
 
