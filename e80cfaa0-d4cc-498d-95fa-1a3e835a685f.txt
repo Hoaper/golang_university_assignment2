@@ -1,0 +1,4 @@
+{"action":"send_message","chat_id":"e80cfaa0-d4cc-498d-95fa-1a3e835a685f","message":"Привет!"}
+{"action":"send_message","chat_id":"e80cfaa0-d4cc-498d-95fa-1a3e835a685f","message":"Как дела?"}
+{"action":"send_message","chat_id":"e80cfaa0-d4cc-498d-95fa-1a3e835a685f","message":"Хорошо все"}
+{"action":"send_message","chat_id":"e80cfaa0-d4cc-498d-95fa-1a3e835a685f","message":"Круто просто"}
