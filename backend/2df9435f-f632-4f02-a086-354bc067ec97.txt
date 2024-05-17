@@ -1,0 +1,3 @@
+{"action":"send_message","chat_id":"2df9435f-f632-4f02-a086-354bc067ec97","message":"sd"}
+{"action":"send_message","chat_id":"2df9435f-f632-4f02-a086-354bc067ec97","message":"sdsdsd"}
+{"action":"send_message","chat_id":"2df9435f-f632-4f02-a086-354bc067ec97","message":"sdsdsd"}

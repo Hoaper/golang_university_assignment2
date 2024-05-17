@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import './Chat.css';
 
 const Chat = ({ chatID, role }) => {
     const [messages, setMessages] = useState([]);
@@ -15,13 +16,11 @@ const Chat = ({ chatID, role }) => {
         };
 
         ws.current.onmessage = (event) => {
-            const message = JSON.parse(event.data);
-            if (message.action === 'chat_history') {
-                // Assuming 'history' is an array of message objects
-                setMessages((prevMessages) => [...prevMessages, ...message.history.map(msg => msg.message)]);
-            } else if (message.message) {
-                // Handling new messages
-                setMessages((prevMessages) => [...prevMessages, message.message]);
+            const messageData = JSON.parse(event.data);
+            if (messageData.action === 'chat_history') {
+                setMessages((prevMessages) => [...prevMessages, ...messageData.history.map(msg => ({ message: msg.message, role: msg.role }))]);
+            } else if (messageData.message) {
+                setMessages((prevMessages) => [...prevMessages, { message: messageData.message, role: messageData.role }]);
             }
         };
 
@@ -41,31 +40,37 @@ const Chat = ({ chatID, role }) => {
     const sendMessage = () => {
         if (inputMessage.trim() === '') return;
 
-        ws.current.send(JSON.stringify({ action: 'send_message', chat_id: chatID, message: inputMessage }));
+        ws.current.send(JSON.stringify({ action: 'send_message', chat_id: chatID, message: inputMessage, role: role }));
         setInputMessage('');
     };
 
     return (
-        <div>
-            <div>
+    <div className="parent-container">
+       <div className="chat-container">
+            <div className="messages-container">
                 <ul>
                     {messages.map((msg, index) => (
-                        <li key={index}>{msg}</li>
+                        <li className={`message ${msg.role === "admin" ? "admin_message" : ""}`} key={index}>
+                            <strong>{msg.role.toUpperCase()}: </strong>{msg.message}
+                        </li>
                     ))}
                 </ul>
             </div>
-            <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                        sendMessage();
-                    }
-                }}
-            />
-            <button onClick={sendMessage}>Send</button>
-        </div>
+            <div className="input-container">
+                <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                            sendMessage();
+                        }
+                    }}
+                />
+                <button onClick={sendMessage}>Send</button>
+            </div>
+            </div>
+    </div>
     );
 };
 
