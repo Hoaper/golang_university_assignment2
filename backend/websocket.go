@@ -175,11 +175,14 @@ func getChatHistory(chatID string) ([]map[string]string, error) {
 func sendMessage(ws *websocket.Conn, msg map[string]string) {
 	chatID := msg["chat_id"]
 	message := msg["message"]
+	role := msg["role"] // Assuming the role is included in the incoming message
+
 	manager.Mutex.Lock()
 	if room, exists := manager.Rooms[chatID]; exists {
 		room.Mutex.Lock()
+		// Include the role in the message sent to clients
 		for client := range room.Clients {
-			if err := client.WriteJSON(map[string]string{"message": message}); err != nil {
+			if err := client.WriteJSON(map[string]string{"message": message, "role": role}); err != nil {
 				log.Println("Write:", err)
 				client.Close()
 				delete(room.Clients, client)
@@ -187,6 +190,7 @@ func sendMessage(ws *websocket.Conn, msg map[string]string) {
 		}
 		room.Mutex.Unlock()
 
+		// Save chat data with role included
 		saveChatData(chatID, msg)
 	}
 	manager.Mutex.Unlock()
