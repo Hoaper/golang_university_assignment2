@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Chat.css';
+import { useRouter } from 'next/navigation';
 
 const Chat = ({ chatID, role }) => {
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
     const ws = useRef(null);
+    const router = useRouter();
 
     useEffect(() => {
         ws.current = new WebSocket('ws://localhost:8080/ws');
@@ -25,7 +27,7 @@ const Chat = ({ chatID, role }) => {
         };
 
         ws.current.onclose = () => {
-            console.log('Disconnected from server');
+            console.log('Disconnected from server');        
         };
 
         ws.current.onerror = (error) => {
@@ -34,6 +36,7 @@ const Chat = ({ chatID, role }) => {
 
         return () => {
             ws.current.close();
+            
         };
     }, [chatID, role]);
 
@@ -44,8 +47,17 @@ const Chat = ({ chatID, role }) => {
         setInputMessage('');
     };
 
+    const closeChat = () => {
+        
+        ws.current.send(JSON.stringify({ action: 'close_chat', chat_id: chatID/*, user: userID*/ }));
+        router.push('/admin');
+    }
+
     return (
     <div className="parent-container">
+         {role !== 'client' && (
+                <button className = "close-chat"onClick={closeChat}>Close Chat</button>
+            )}
        <div className="chat-container">
             <div className="messages-container">
                 <ul>

@@ -81,3 +81,12 @@
     height: 100vh; 
     background-color: #f0f0f0; 
 }
+.close-chat {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: #ff0000;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
