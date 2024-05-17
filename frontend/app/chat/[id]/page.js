@@ -8,6 +8,7 @@ const ChatPage = ({params}) => {
     const searchParams = useSearchParams()
     const id = params.id;
     const role = searchParams.get("role");
+    const login = searchParams.get("login");
 
     useEffect(() => {
         if (!id || !role) {
@@ -22,7 +23,7 @@ const ChatPage = ({params}) => {
 
     return (
         <div>
-            <Chat chatID={id} role={role} />
+            <Chat chatID={id} role={role} login={login}/>
         </div>
     );
 };

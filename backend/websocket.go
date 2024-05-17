@@ -20,6 +20,8 @@ var upgrader = websocket.Upgrader{
 type ChatRoom struct {
 	ID      string
 	Clients map[*websocket.Conn]bool
+	Users   []string // List of usernames in the chat
+	Admin   string   // Username of the chat room admin
 	Mutex   sync.Mutex
 }
 
@@ -31,6 +33,8 @@ type ChatManager struct {
 var manager = ChatManager{
 	Rooms: make(map[string]*ChatRoom),
 }
+
+var userChats = make(map[string][]string)
 
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
@@ -61,6 +65,9 @@ func processMessage(ws *websocket.Conn, msg map[string]string) {
 		createOrJoinChat(ws, msg)
 	case "list_chats":
 		listChats(ws)
+	case "list_user_chats":
+		logrus.Info(userChats, msg)
+		listUserChats(ws, msg)
 	case "join_chat":
 		joinChat(ws, msg)
 	case "send_message":
@@ -70,17 +77,29 @@ func processMessage(ws *websocket.Conn, msg map[string]string) {
 	}
 }
 
+func listUserChats(ws *websocket.Conn, msg map[string]string) {
+	login := msg["login"]
+	manager.Mutex.Lock()
+	ws.WriteJSON(map[string]interface{}{
+		"action": "list_user_chats",
+		"chats":  userChats[login],
+	})
+	manager.Mutex.Unlock()
+}
+
 func createOrJoinChat(ws *websocket.Conn, msg map[string]string) {
 	chatID := msg["chat_id"]
+	login := msg["login"]
+
 	manager.Mutex.Lock()
 	room, exists := manager.Rooms[chatID]
 	if !exists {
-		// Create chat if it doesn't exist
 		room = &ChatRoom{
 			ID:      chatID,
 			Clients: make(map[*websocket.Conn]bool),
 		}
 		manager.Rooms[chatID] = room
+		userChats[login] = append(userChats[login], chatID)
 		notifyAdmins("new_chat", chatID)
 	}
 	manager.Mutex.Unlock()
@@ -89,14 +108,12 @@ func createOrJoinChat(ws *websocket.Conn, msg map[string]string) {
 	room.Clients[ws] = true
 	room.Mutex.Unlock()
 
-	// Retrieve chat history
 	chatHistory, err := getChatHistory(chatID)
 	if err != nil {
 		log.Println("Error retrieving chat history:", err)
 		return
 	}
 
-	// Send chat history to all clients in the room
 	room.Mutex.Lock()
 	for client := range room.Clients {
 		if err := client.WriteJSON(map[string]interface{}{"action": "chat_history", "history": chatHistory}); err != nil {
@@ -128,12 +145,10 @@ func joinChat(ws *websocket.Conn, msg map[string]string) {
 		room.Mutex.Lock()
 		room.Clients[ws] = true
 
-		// Retrieve chat history
 		chatHistory, err := getChatHistory(chatID)
 		if err != nil {
 			log.Println("Error retrieving chat history:", err)
 		} else {
-			// Send chat history to client
 			if err := ws.WriteJSON(map[string]interface{}{"action": "chat_history", "history": chatHistory}); err != nil {
 				log.Println("Error sending chat history:", err)
 			}
@@ -144,11 +159,8 @@ func joinChat(ws *websocket.Conn, msg map[string]string) {
 	manager.Mutex.Unlock()
 }
 
-// Assume this function retrieves chat history for a given chatID
 func getChatHistory(chatID string) ([]map[string]string, error) {
 	var history []map[string]string
-	// Logic to read chat history from a file or database
-	// For example, reading from a file (simplified):
 	file, err := os.Open(chatID + ".txt")
 	if err != nil {
 		return nil, err
@@ -175,12 +187,11 @@ func getChatHistory(chatID string) ([]map[string]string, error) {
 func sendMessage(ws *websocket.Conn, msg map[string]string) {
 	chatID := msg["chat_id"]
 	message := msg["message"]
-	role := msg["role"] // Assuming the role is included in the incoming message
+	role := msg["role"]
 
 	manager.Mutex.Lock()
 	if room, exists := manager.Rooms[chatID]; exists {
 		room.Mutex.Lock()
-		// Include the role in the message sent to clients
 		for client := range room.Clients {
 			if err := client.WriteJSON(map[string]string{"message": message, "role": role}); err != nil {
 				log.Println("Write:", err)
@@ -190,7 +201,6 @@ func sendMessage(ws *websocket.Conn, msg map[string]string) {
 		}
 		room.Mutex.Unlock()
 
-		// Save chat data with role included
 		saveChatData(chatID, msg)
 	}
 	manager.Mutex.Unlock()
@@ -198,16 +208,35 @@ func sendMessage(ws *websocket.Conn, msg map[string]string) {
 
 func closeChat(ws *websocket.Conn, msg map[string]string) {
 	chatID := msg["chat_id"]
+
+	// find in userChats corresponding chatID and delete it from userChats login is not defined.
+	removeFromUserChats(chatID)
+
 	manager.Mutex.Lock()
 	if room, exists := manager.Rooms[chatID]; exists {
 		room.Mutex.Lock()
 		for client := range room.Clients {
 			client.Close()
 		}
+
 		delete(manager.Rooms, chatID)
 		room.Mutex.Unlock()
 	}
 	manager.Mutex.Unlock()
+}
+
+func removeFromUserChats(chatID string) {
+	manager.Mutex.Lock()
+	defer manager.Mutex.Unlock()
+
+	for login, chats := range userChats {
+		for i, id := range chats {
+			if id == chatID {
+				userChats[login] = append(chats[:i], chats[i+1:]...)
+				break
+			}
+		}
+	}
 }
 
 func notifyAdmins(event string, chatID string) {
