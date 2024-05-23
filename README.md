@@ -56,14 +56,3 @@ npm start
 
 The application will be available at `http://localhost:3000`.
 
-## Documentation
-
-For more detailed information about the project structure and API endpoints, refer to the `docs` directory.
-
-## Contributing
-
-We welcome contributions! Please feel free to fork the repository and submit pull requests.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
