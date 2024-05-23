@@ -5,15 +5,18 @@ import { useRouter } from 'next/navigation';
 const Chat = ({ chatID, role, login }) => {
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
+    const [connected, setConnected] = useState(false);
     const ws = useRef(null);
     const router = useRouter();
+
 
     useEffect(() => {
         ws.current = new WebSocket('ws://localhost:8080/ws');
 
         ws.current.onopen = () => {
             console.log('Connected to server');
-            // Adjusted to handle both roles more dynamically
+            if (ws.current.readyState === 1)
+
             if (!login) ws.current.send(JSON.stringify({ action: role === 'client' ? 'create_chat' : 'join_chat', chat_id: chatID }));
             else ws.current.send(JSON.stringify({ action: 'create_chat', chat_id: chatID, login: login }));
         };
@@ -29,16 +32,19 @@ const Chat = ({ chatID, role, login }) => {
 
         ws.current.onclose = () => {
             console.log('Disconnected from server');
+            router.push("/")
         };
 
         ws.current.onerror = (error) => {
             console.error(`WebSocket error: ${error.message}`);
+
         };
 
         return () => {
-            ws.current.close();
-
-        };
+            if (ws.current.readyState === 1) {
+                ws.current.close();
+            }
+        }
     }, [chatID, role]);
 
     const sendMessage = () => {
